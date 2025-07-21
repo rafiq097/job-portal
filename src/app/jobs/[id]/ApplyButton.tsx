@@ -1,16 +1,23 @@
 "use client";
 
+import { useSession } from "next-auth/react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
 export default function ApplyButton({ jobId }: { jobId: string }) {
+    const { data: session, status } = useSession();
     const router = useRouter();
     const [errorMessage, setErrorMessage] = useState<string>("");
     const [applicationStatus, setApplicationStatus] = useState<
         "idle" | "success" | "error"
     >("idle");
     const handleApply = async () => {
+        if (!session) {
+            router.push("/auth/signin");
+            return;
+        }
+
         setErrorMessage("");
         setApplicationStatus("idle");
 
@@ -28,6 +35,17 @@ export default function ApplyButton({ jobId }: { jobId: string }) {
             setApplicationStatus("error");
         }
     };
+
+    if (status === "loading") {
+        return (
+            <button
+                disabled
+                className="w-full bg-indigo-600 text-white px-6 py-3 rounded-md opacity-50 cursor-not-allowed"
+            >
+                Loading...
+            </button>
+        );
+    }
 
     if (applicationStatus === "success") {
         return (
