@@ -29,7 +29,7 @@ export const { auth, handlers, signIn, signOut } = NextAuth({
           where: { email: credentials.email },
         });
 
-        if(!user || !(await compare(credentials.password, user.password))) {
+        if (!user || !(await compare(credentials.password, user.password))) {
           return null;
         }
 
@@ -57,5 +57,5 @@ export const { auth, handlers, signIn, signOut } = NextAuth({
   },
   pages: {
     signIn: "/api/auth/signin",
-  }  
+  },
 });
