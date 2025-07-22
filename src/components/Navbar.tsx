@@ -1,12 +1,11 @@
 "use client";
 
 import Link from "next/link";
-import Image from "next/image";
 import { useSession } from "next-auth/react";
-import { signOut } from "@/auth";
+import { signOut } from "next-auth/react";
 
 export const logout = async () => {
-    await signOut({ redirectTo: "/api/auth/signin" });
+  await signOut({ callbackUrl: "/auth/signin" });
   };
 
 export default function Navbar() {
@@ -17,13 +16,6 @@ export default function Navbar() {
         <div className="flex justify-between h-16">
           <div className="flex">
             <Link href="/" className="flex items-center">
-              <Image
-                src="/logo.png"
-                alt="Job Board Logo"
-                width={40}
-                height={40}
-                className="h-8 w-auto"
-              />
               <span className="ml-2 text-xl font-semibold text-gray-900">
                 Job Board
               </span>

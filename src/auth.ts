@@ -1,50 +1,42 @@
 import NextAuth from "next-auth";
 import { PrismaAdapter } from "@auth/prisma-adapter";
-import { PrismaClient } from "./generated/prisma";
-import Credentials from "next-auth/providers/credentials";
+import CredentialsProvider from "next-auth/providers/credentials";
+import { PrismaClient } from "@/lib/prisma";
 import { compare } from "bcryptjs";
 
 const prisma = new PrismaClient();
-export const { auth, handlers, signIn, signOut } = NextAuth({
+
+export const authOptions = {
+  adapter: PrismaAdapter(prisma),
   session: {
     strategy: "jwt",
   },
   providers: [
-    Credentials({
+    CredentialsProvider({
       name: "Credentials",
       credentials: {
-        email: { label: "email", type: "email", placeholder: "Email" },
-        password: {
-          label: "password",
-          type: "password",
-          placeholder: "Password",
-        },
+        email: { label: "Email", type: "email" },
+        password: { label: "Password", type: "password" },
       },
       async authorize(credentials) {
-        if (!credentials?.email || !credentials?.password) {
-          return null;
-        }
+        if (!credentials?.email || !credentials?.password) return null;
 
         const user = await prisma.user.findUnique({
           where: { email: credentials.email },
         });
 
-        if (!user || !(await compare(credentials.password, user.password))) {
-          return null;
-        }
+        if (!user || !(await compare(credentials.password, user.password))) return null;
 
-        return { id: user.id, name: user.name, email: user.email };
+        return { id: user.id, email: user.email, name: user.name };
       },
     }),
   ],
-  adapter: PrismaAdapter(prisma),
   callbacks: {
     async jwt({ token, user }) {
       if (user) {
         token.id = user.id;
         token.name = user.name;
       }
-
       return token;
     },
     async session({ session, token }) {
@@ -58,4 +50,9 @@ export const { auth, handlers, signIn, signOut } = NextAuth({
   pages: {
     signIn: "/api/auth/signin",
   },
-});
+  secret: process.env.NEXTAUTH_SECRET,
+};
+
+const handler = NextAuth(authOptions);
+export { handler as GET, handler as POST };
+export { handler as handlers };
